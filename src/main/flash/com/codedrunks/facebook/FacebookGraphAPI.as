@@ -143,7 +143,8 @@ package com.codedrunks.facebook
 			switch(currentRequest)
 			{
 				case USER_INFO:
-					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.USER_INFO_FAIL);								
+					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.USER_INFO_FAIL);
+					trace("debug --> User info fetch failed", this);
 					break;
 				
 				case PUBLISH_TO_WALL:
@@ -263,6 +264,7 @@ package com.codedrunks.facebook
 			currentRequest = USER_INFO;
 			
 			var url:String = apiUnsecuredPath+userId;
+			trace("debug --> getting user profile info", url);
 			loader.load(new URLRequest(url));
 		}
 		

@@ -1,54 +1,155 @@
 ﻿package  {
 	import com.codedrunks.socnet.SocnetAPI;
 	import com.codedrunks.socnet.events.SocnetAPIEvent;
+	import com.codedrunks.socnet.events.SocnetUserInfoEvent;
 	import com.codedrunks.socnet.events.SocnetUserLikesEvent;
+	import com.codedrunks.utilities.RemotingService;
 	
 	import fl.data.DataProvider;
 	
 	import flash.display.MovieClip;
+	import flash.events.*;
 	import flash.events.Event;
 	import flash.events.IOErrorEvent;
 	import flash.events.MouseEvent;
 	import flash.events.SecurityErrorEvent;
 	import flash.external.ExternalInterface;
+	import flash.net.Responder;
 	import flash.net.URLLoader;
 	import flash.net.URLRequest;
+	import flash.net.registerClassAlias;
+	import flash.utils.Timer;
 	
-	public class MA_Form extends MovieClip {
+	import ikriti.natgeo.vo.EnumGenderVO;
+	import ikriti.natgeo.vo.EnumMemberStatusVO;
+	import ikriti.natgeo.vo.FbUserVO;
+	import ikriti.natgeo.vo.MaParticipantVO;
+	import ikriti.natgeo.vo.MemberVO;
+	
+	public class MA_Form extends MovieClip { 
 
 		public var genderArray:Array;
-		public var message:String;
+		public var message:String; 
 		private var socnetAPI:SocnetAPI;
 		private var applicationID:String = "155442984483491";
 		private var secretKey:String = "94e365d702169396f836222cfa166fed";
 		private var scope:String = "publish_stream,user_photos";
 		private var redirectURI:String = "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/callback.html";
 		private var fbPageId:String;
+		private var rs:RemotingService;
+		
+		private var fbUser:FbUserVO;
+		private var member:MemberVO;
+		private var maParticipant:MaParticipantVO;
+		private var isInitializing:Boolean;
 		
 		public function MA_Form() 
 		{
+			trace("in the document class constructor");
 			genderArray = new Array();
 			genderArray.push("male");
-			genderArray.push("female");
-			
+			genderArray.push("female"); 
 			applicationID = loaderInfo.parameters.fbAppId;
 			secretKey = loaderInfo.parameters.fbSek;
 			redirectURI = loaderInfo.parameters.fbRedirectUrl;
 			fbPageId = loaderInfo.parameters.fbPageId;
 			
+			if (ExternalInterface.available) {
+                try {
+                   
+                    
+                    if (checkJavaScriptReady()) {
+                        //output.appendText("JavaScript is ready.\n");
+                    } else {
+                        //output.appendText("JavaScript is not ready, creating timer.\n");
+                        var readyTimer:Timer = new Timer(100, 0);
+                        readyTimer.addEventListener(TimerEvent.TIMER, timerHandler);
+                        readyTimer.start();
+                    }
+                } catch (error:SecurityError) {
+                    //output.appendText("A SecurityError occurred: " + error.message + "\n");
+                } catch (error:Error) {
+                    //output.appendText("An Error occurred: " + error.message + "\n");
+                }
+            } else {
+                //output.appendText("External interface is not available for this container.");
+            }
+			
+			isInitializing = true;
+			
+			messageBox.ok_btn.addEventListener(MouseEvent.CLICK,onClickMessageOk);
+			disablerMc.addEventListener(MouseEvent.CLICK, handleDisablerClick);
+			//disablerMc.mouseEnabled = false;
+			disablerMc.useHandCursor = false;
+			
+			messageBox.errorMessage.text = "If you have popup blocker enabled on your browser, please click OK to continue";
+			messageBox.x = 320;
+			messageBox.y = 50;
+			messageBox.visible = true;
+			
+			initRemoting();
 			initExternal();
 			initSocnet();
+		}
+		
+		private function handleDisablerClick(event:MouseEvent):void
+		{
+			
+		}
+		
+		
+        private function checkJavaScriptReady():Boolean {
+            var isReady:Boolean = ExternalInterface.call("isReady");
+            return isReady;
+        }
+        private function timerHandler(event:TimerEvent):void {
+            //output.appendText("Checking JavaScript status...\n");
+            var isReady:Boolean = checkJavaScriptReady();
+            if (isReady) {
+               // output.appendText("JavaScript is ready.\n");
+                Timer(event.target).stop();
+            }
+        }
+		
+		private function initRemoting():void
+		{
+			var remotingDestination:String = "http://www.apptikka.com/natgeoindia/messagebroker/amf";
+			rs = new RemotingService(remotingDestination);
+			registerRemoteVOs();
+			/* *
+			member = new MemberVO();
+			member.firstname = "Manu George";
+			
+			fbUser = new FbUserVO();
+			fbUser.photoUrl = "http://www.google.com";
+			fbUser.facebookId = "1288328160165";
+			fbUser.member = member;
+			
+			saveFbUserDetails();
+			/* */
+		}
+		
+		private function registerRemoteVOs():void
+		{      
+			registerClassAlias("ikriti.natgeo.vo.FbUserVO", ikriti.natgeo.vo.FbUserVO);      
+			registerClassAlias("ikriti.natgeo.vo.MemberVO", ikriti.natgeo.vo.MemberVO);      
+			registerClassAlias("ikriti.natgeo.vo.EnumGenderVO", ikriti.natgeo.vo.EnumGenderVO);      
+			registerClassAlias("ikriti.natgeo.vo.EnumMemberStatusVO", ikriti.natgeo.vo.EnumMemberStatusVO);      
+			registerClassAlias("ikriti.natgeo.vo.MaParticipantVO", ikriti.natgeo.vo.MaParticipantVO);      
 		}
 		
 		private function initExternal():void
 		{
 			if (ExternalInterface.available) {
+				trace("external interface available")
 				ExternalInterface.addCallback("enableEntryForm", enableEntryForm);
 			}
-		}
+		} 
 		
 		private function initSocnet():void
 		{
+			trace("init socNet....");
+			
 			socnetAPI = SocnetAPI.getInstance();
 			socnetAPI.addEventListener(SocnetAPIEvent.INITIALIZED, handleSocnetInitialize);
 			socnetAPI.addEventListener(SocnetAPIEvent.INITIALIZE_FAILED, handleSocnetInitializeFail);
@@ -63,10 +164,70 @@
 		
 		private function handleSocnetInitialize(event:SocnetAPIEvent):void
 		{
+			isInitializing = false;
+			messageBox.visible = false;
+				
 			socnetAPI.removeEventListener(SocnetAPIEvent.INITIALIZED, handleSocnetInitialize);
 			socnetAPI.removeEventListener(SocnetAPIEvent.INITIALIZE_FAILED, handleSocnetInitializeFail);
 			
+			getFbUserDetails();
+			//unlike_msg.visible = false;
+		}
+		
+		private function getFbUserDetails():void
+		{
+			trace("debug --> getting fb user details", this);
+			socnetAPI.addEventListener(SocnetUserInfoEvent.USER_INFO_FETCHED, handleFbUserInfo);
+			socnetAPI.addEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleFbUserInfoFail);
+			socnetAPI.getProfileInfo();
+		}
+		
+		private function handleFbUserInfo(event:SocnetUserInfoEvent):void
+		{
+			trace("debug --> fb user details fetched", this);
+			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FETCHED, handleFbUserInfo);
+			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleFbUserInfoFail);
+			
+			member = new MemberVO();
+			member.firstname = event.userName;
+			
+			fbUser = new FbUserVO();
+			fbUser.photoUrl = event.userPic;
+			fbUser.facebookId = event.userId;
+			fbUser.member = member
+			
+			saveFbUserDetails();
 			checkFBLike();
+		}
+		
+		private function handleFbUserInfoFail(event:SocnetUserInfoEvent):void
+		{
+			trace("debug --> fb user details fetch failed", this);
+			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FETCHED, handleFbUserInfo);
+			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleFbUserInfoFail);
+			
+			checkFBLike();
+		}
+		
+		private function saveFbUserDetails():void
+		{
+			var responder:Responder = new Responder(handleAssociateFbResult, handleAssociateFbFault);
+			rs.call("remoteMemberService.associateFB", responder, fbUser);
+		}
+
+		private function handleAssociateFbResult(result:Object):void
+		{
+			trace("debug --> result", result);
+			
+			fbUser = result as FbUserVO;
+			member = fbUser.member;
+			
+			//saveMaParticipant();
+		}
+		 
+		private function handleAssociateFbFault(fault:Object):void
+		{
+			trace("debug --> fault", fault);
 		}
 		
 		
@@ -74,12 +235,13 @@
 		@ checks the fb like	
 				 	 
 		@ method dispose (private)
-		@ params .
+		@ params 
 		@ usage <code>usage</code>
 		@ return void
 		*/
 		private function checkFBLike():void
 		{
+			trace("in the FB check..");
 			socnetAPI.addEventListener(SocnetUserLikesEvent.USER_LIKES_APP, handleUserLikesApp);
 			socnetAPI.addEventListener(SocnetUserLikesEvent.USER_DISLIKES_APP, handleUserDislikesApp);
 			socnetAPI.checkUserLikesApp(fbPageId);
@@ -88,14 +250,20 @@
 		private function enableEntryForm():void
 		{
 			trace("debug --> ENABLING ENTRY FORM", this);
-			this.gotoAndStop(3);
+			//this.gotoAndStop(3);
+			this.gotoAndStop(2);
 			
+			disablerMc.mouseEnabled = false;  
+			unlike_msg.x = 270;
+			unlike_msg.y = -54;
+			//unlike_msg.visible = false;
+			
+			//ExternalInterface.call("removeAlertText");
 			submit_btn.addEventListener(MouseEvent.CLICK,onClickSubmit);
-			messageBox.ok_btn.addEventListener(MouseEvent.CLICK,onClickMessageOk);
 			cmbGender.dataProvider = new DataProvider(genderArray);
 		}
 		
-		/**
+		/** 
 		@ user likes the app	
 				 	 
 		@ method dispose (private)
@@ -108,8 +276,9 @@
 			socnetAPI.removeEventListener(SocnetUserLikesEvent.USER_LIKES_APP, handleUserLikesApp);
 			socnetAPI.removeEventListener(SocnetUserLikesEvent.USER_DISLIKES_APP, handleUserDislikesApp);
 			
-			trace("debug --> User LIKES the application", this);
+			trace("debug --> User LIKES the application wow..", this);
 			enableEntryForm();
+			
 		}
 		
 		/**
@@ -127,7 +296,19 @@
 			
 			trace("debug --> User DISLIKES the application", this);
 			this.gotoAndStop(2);
+			disablerMc.mouseEnabled = true;
+			//unlike_msg.visible = true;
+			unlike_msg.x = 261;
+			unlike_msg.y = 121;
+			ExternalInterface.call("displayAlertText");
+			//disableForm();
+			
 		}
+		
+		/*private function disableForm()
+		{
+			firstName_txt.visible = false;
+		}*/
 		
 		/**
 		@ handles the load IO error event	
@@ -174,6 +355,11 @@
 		{
 			trace("message btn clicked");
 			messageBox.visible = false;
+			
+			if(isInitializing)
+			{
+				initSocnet();
+			}
 		}
 		
 		private function onClickSubmit(e:MouseEvent):void
@@ -254,8 +440,47 @@
 				trace("valid LastName");
 				trace("valid weight:"+weight_txt.text.length);
 				trace("valid email & mobile no");
+				
+				saveMaParticipant();
 			}
 			
+		}
+		
+		private function saveMaParticipant():void
+		{
+			var gender:EnumGenderVO = new EnumGenderVO();
+			gender.id = (cmbGender.selectedLabel == genderArray[0])? EnumGenderVO.MALE : EnumGenderVO.FEMALE;
+			
+			member.email = email_txt.text;
+			member.gender = gender;
+			member.mobile = mobileNo_txt.text;
+			member.lastname = lastName_txt.text;
+			member.firstname = firstName_txt.text;
+			
+			maParticipant = new MaParticipantVO();
+			maParticipant.age = String(ageStepper.value);
+			maParticipant.height  = height_txt.text;
+			maParticipant.weight = weight_txt.text;
+			maParticipant.member = member;
+			
+			var responder:Responder = new Responder(handleRegisterParticipantResult, handleRegisterParticipantFault);
+			rs.call("remoteMemberService.registerMissionArmyParticipant", responder, maParticipant);
+		}
+		
+		private function handleRegisterParticipantResult(result:Object):void
+		{
+			messageBox.errorMessage.text = "Thank you for participating in Idea Presents Nat Geo Mission Army. We will get back to you regarding the next stage shortly.";
+			messageBox.x = 320;
+			messageBox.y = 50;
+			messageBox.visible = true;
+		}
+		
+		private function handleRegisterParticipantFault(fault:Object):void
+		{
+			messageBox.errorMessage.text = "We are  sorry, we couldnt complete the request. Please try again.";
+			messageBox.x = 320;
+			messageBox.y = 50;
+			messageBox.visible = true;
 		}
 
 	}
