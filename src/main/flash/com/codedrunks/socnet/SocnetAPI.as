@@ -16,6 +16,7 @@ package com.codedrunks.socnet
 		private static var instance:SocnetAPI;
 		
 		private var flashvars:Object;
+		private var userId:String;
 		
 		public function SocnetAPI(target:IEventDispatcher=null):void
 		{
@@ -78,6 +79,8 @@ package com.codedrunks.socnet
 			trace("debug --> SOCNET_FB_INITIALIZED", this);
 			facebookAPI.removeEventListener(FacebookGraphAPIEvent.FB_API_INITIALIZED, handleFBIntialized);
 			facebookAPI.removeEventListener(FacebookGraphAPIEvent.FB_API_INITIALIZATION_FAILED, handleFBIntializationFailed);
+			
+			userId = facebookAPI.getUserId();
 			
 			dispatchEvent(new SocnetAPIEvent(SocnetAPIEvent.INITIALIZED));
 		}
@@ -210,6 +213,19 @@ package com.codedrunks.socnet
 			
 			var e:SocnetUserLikesEvent = new SocnetUserLikesEvent(SocnetUserLikesEvent.USER_DISLIKES_APP);
 			dispatchEvent(e);
+		}
+		
+		/**
+		 @ returns the user id	
+		 
+		 @ method dispose (public)
+		 @ params .
+		 @ usage <code>api.getUserId()</code>
+		 @ return String
+		 */
+		public function getUserId():String
+		{
+			return userId;
 		}
 	}
 }

@@ -143,8 +143,7 @@ package com.codedrunks.facebook
 			switch(currentRequest)
 			{
 				case USER_INFO:
-					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.USER_INFO_FAIL);
-					trace("debug --> User info fetch failed", this);
+					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.USER_INFO_FAIL);								
 					break;
 				
 				case PUBLISH_TO_WALL:
@@ -264,7 +263,6 @@ package com.codedrunks.facebook
 			currentRequest = USER_INFO;
 			
 			var url:String = apiUnsecuredPath+userId;
-			trace("debug --> getting user profile info", url);
 			loader.load(new URLRequest(url));
 		}
 		
@@ -345,6 +343,19 @@ package com.codedrunks.facebook
 			var url:String = apiSecuredPath+userId+"/likes?access_token="+accessToken;
 			var request:URLRequest = new URLRequest(url);
 			loader.load(request);
+		}
+		
+		/**
+		@ returns the user id	
+				 	 
+		@ method dispose (public)
+		@ params .
+		@ usage <code>api.getUserId()</code>
+		@ return String
+		*/
+		public function getUserId():String
+		{
+			return userId;
 		}
 		
 	}
