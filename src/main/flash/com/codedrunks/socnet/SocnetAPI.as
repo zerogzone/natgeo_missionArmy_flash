@@ -166,6 +166,7 @@ package com.codedrunks.socnet
 		public function publishToFeed(message:String, userId:String=null, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null):void
 		{
 			facebookAPI.publishToWall(message, userId, picture, link, name, caption, description, source);
+			checkWallPosted();
 		}
 		
 		/**
@@ -181,6 +182,25 @@ package com.codedrunks.socnet
 			facebookAPI.addEventListener(FacebookGraphAPIEvent.USER_LIKES_APP, handleUserLikesApp);
 			facebookAPI.addEventListener(FacebookGraphAPIEvent.USER_LIKES_APP_FAIL, handleUserLikesAppFail);
 			facebookAPI.checkUserLikesApp(appId);
+		}
+		
+		public function checkWallPosted():void
+		{
+			facebookAPI.addEventListener(FacebookGraphAPIEvent.WALL_POST_SUCCESS, handleWallPostSuccess);
+			facebookAPI.addEventListener(FacebookGraphAPIEvent.WALL_POST_FAIL, handleWallPostFail);
+			trace("kichcha -->wall posting socnet API");
+		}
+		
+		private function handleWallPostSuccess(event:FacebookGraphAPIEvent):void
+		{
+			var e:SocnetAPIEvent = new SocnetAPIEvent(SocnetAPIEvent.WALL_POST_SUCCESS);
+			dispatchEvent(e);
+		}
+		
+		private function handleWallPostFail(event:FacebookGraphAPIEvent):void
+		{
+			var e:SocnetAPIEvent = new SocnetAPIEvent(SocnetAPIEvent.WALL_POST_FAIL);
+			dispatchEvent(e);
 		}
 		
 		/**

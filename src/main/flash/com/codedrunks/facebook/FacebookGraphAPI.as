@@ -147,6 +147,7 @@ package com.codedrunks.facebook
 					break;
 				
 				case PUBLISH_TO_WALL:
+					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.WALL_POST_FAIL);
 					trace("Error --> PUBLISH TO WALL FAILED", this);
 					break;
 				
@@ -188,6 +189,7 @@ package com.codedrunks.facebook
 					break;
 				
 				case PUBLISH_TO_WALL:
+					e = new FacebookGraphAPIEvent(FacebookGraphAPIEvent.WALL_POST_SUCCESS);
 					trace("debug --> PUBLISH TO WALL COMPLETE", this);
 					break;
 				

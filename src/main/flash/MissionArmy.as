@@ -4,15 +4,17 @@
 	import com.adobe.utils.StringUtil;
 	import com.codedrunks.components.flash.Image;
 	import com.codedrunks.components.flash.Share;
+	import com.codedrunks.components.flash.Twitter;
 	import com.codedrunks.facebook.FacebookGraphAPI;
 	import com.codedrunks.facebook.events.FacebookGraphAPIEvent;
 	import com.codedrunks.socnet.SocnetAPI;
 	import com.codedrunks.socnet.events.SocnetAPIEvent;
 	import com.codedrunks.socnet.events.SocnetUserInfoEvent;
-	import com.codedrunks.components.flash.Twitter;
 	
 	import fl.controls.Button;
-	import fl.events.SliderEvent; 
+	import fl.events.SliderEvent;
+	import fl.transitions.Tween;
+	import fl.transitions.easing.*;
 	
 	import flash.display.Loader;
 	import flash.display.MovieClip;
@@ -31,6 +33,7 @@
 	import flash.ui.Mouse;
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
+	import flash.utils.describeType;
 	
 	import net.slideshowpro.slideshowpro.SSPModePlaybackEvent;
 	import net.slideshowpro.slideshowpro.SSPVideoEvent;
@@ -45,17 +48,17 @@
 	public class MissionArmy extends MovieClip
 	{
 		private var flashvars:Object;
-		private var applicationID:String = "155442984483491";
-		private var secretKey:String = "94e365d702169396f836222cfa166fed";
+		private var applicationID:String = "153610078014709";
+		private var secretKey:String = "4772b59f4bc07a941cf6b578c475a254";
 		private var scope:String = "publish_stream,user_photos";
-		private var redirectURI:String = "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/callback.html";
+		private var redirectURI:String = "http://www.apptikka.com/ngc/mission_army/apps/callback.html";
 		private var socnetAPI:SocnetAPI;
 		private var profilePicLoader:Loader;
 		private var player:Object;
 		private var player2:Object;
 		private var player3:Object;
-		private var timer:Timer = new Timer(10);
-		private var url:String = "xwu2vbYV2hI";
+		private var timer:Timer = new Timer(1000);
+		private var url:String = "Yc2gW5K1s5Y";
 		private var loader:Loader;
 		private var loaderTwo:Loader;
 		private var loaderThree:Loader;  
@@ -65,32 +68,41 @@
 		private var embedCode:String;
 		private var wildfireUIConfig:String;
 		private var memberId:String;
-		private var twitter:Twitter;
+		private var twitter:Twitter;   
+		[Bindable]
+		private var shareImage:Image = new Image();
+		private var image:Image = new Image();
+		
+		private var shareTimer:Timer = new Timer(2000);
+		
+		private var facebookWall:FacebookWall = new FacebookWall();
 		 
 		public function MissionArmy()
 			
-			
+			 
 		{
 			super();
 			initApp();
 			//setFlashvars();
+			trace("Constructor reached");
 		}
 		
 		public function setFlashvars(parameters:Object):void
 		{
 			flashvars = parameters;
 			init();
+			trace("set flash vars");
 		}
 		
 		private function init():void
 		{
+			trace("init()");
 			loadConfig();
 			
-			addToFacebookBtn.addEventListener(MouseEvent.CLICK, handleAddToFacebookBtnClick);
+			//addToFacebookBtn.addEventListener(MouseEvent.CLICK, handleAddToFacebookBtnClick);
 			shareBtn.addEventListener(MouseEvent.CLICK, handleShareBtnClick);
-			twitterBtn.addEventListener(MouseEvent.CLICK, handleTwitterBtnClick);
+			//twitterBtn.addEventListener(MouseEvent.CLICK, handleTwitterBtnClick);
 		}
-		
 		
 		/**
 		 @ loads the config xml	
@@ -102,6 +114,7 @@
 		 */
 		private function loadConfig():void
 		{
+			trace("reachedload config");
 			var urlLoader:URLLoader = new URLLoader();
 			urlLoader.addEventListener(Event.COMPLETE, handleConfigLoadComplete);
 			urlLoader.addEventListener(IOErrorEvent.IO_ERROR, handleConfigLoadIOError);
@@ -144,6 +157,9 @@
 		 */			
 		private function handleConfigLoadComplete(event:Event):void
 		{
+			
+			trace("reached handleload Complete");
+			
 			var xml:XML = XML(event.target.data);
 			
 			embedCode = xml.embedCode;
@@ -204,12 +220,13 @@
 			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleProfileInfoFail);
 			
 			profileMc.profileName.text = event.userName;
-			var image:Image = new Image();
-			image.source = event.userPic;
-			image.width = profileMc.profilePic.width;
-			image.height = profileMc.profilePic.height;
 			
-			profileMc.profilePic.addChild(image);
+			image.source = event.userPic;
+			image.width = profileMc.profilePicLoader.width;
+			image.height = profileMc.profilePicLoader.height;
+			profileMc.profilePicLoader.addChild(image);
+			shareImage = image;
+			//initApp();
 		}
 		
 		private function handleProfileInfoFail(event:SocnetUserInfoEvent):void
@@ -220,10 +237,44 @@
 		
 		private function handleAddToFacebookBtnClick(event:MouseEvent):void
 		{
-			socnetAPI.publishToFeed("This is a test message", null, "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/assets/images/cover.png", "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/index.html", "Container Test", "FB Container and Template", "This is to test the FB Container and the Template application", "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/Container.swf");
+			var onMindTxt:String = facebookWall.whatOnMind_txtInput.text;
+			if(onMindTxt == "" || onMindTxt == "What's On your mind ?")
+			{
+				onMindTxt = "Nat Geo takes its cameras inside the Indian Army! Awesome!";
+			}
+			else
+			{
+				onMindTxt = facebookWall.whatOnMind_txtInput.text;
+			}
+			socnetAPI.publishToFeed(onMindTxt, null, "http://www.apptikka.com/ngc/mission_army/apps/assets/images/fb_wall_cover.png", "http://apps.facebook.com/natgeoindia/", "Idea Presents Nat Geo Mission Army", "http://apps.facebook.com/natgeoindia/" , "This is Nat Geo's biggest television event of the year. Enter Mission Army and live the life of a soldier. Five ordinary Indians will get the chance of a lifetime! And only one person will be a part of the Indian military training team abroad.", "http://www.apptikka.com/ngc/mission_army/apps/Container.swf");
+			socnetAPI.addEventListener(SocnetAPIEvent.WALL_POST_SUCCESS,handleWallPostSuccess);
+			socnetAPI.addEventListener(SocnetAPIEvent.WALL_POST_FAIL,handleWallPostFail);
 		}
 		
-		private function handleTwitterBtnClick(event:MouseEvent):void
+		private function handleWallPostSuccess(event:SocnetAPIEvent):void
+		{
+			facebookWall.successMsg.text = "Succesfully posted on your wall";
+			shareTimer.addEventListener(TimerEvent.TIMER,handleTimerComplete);
+			shareTimer.start();
+		}
+		
+		private function handleWallPostFail(event:SocnetAPIEvent):void
+		{
+			facebookWall.successMsg.text = "Posting Failed";
+			shareTimer.addEventListener(TimerEvent.TIMER,handleTimerComplete);
+			shareTimer.start();
+		}
+		
+		private function handleTimerComplete(event:TimerEvent):void
+		{
+			shareTimer.stop();
+			removeChild(facebookWall);
+			profileMc.profilePicLoader.addChild(image);
+			trace("Hello Timer Stoped");
+			
+		}
+		
+		/*private function handleTwitterBtnClick(event:MouseEvent):void
 		{
 			if(!twitter)
 			{
@@ -241,12 +292,13 @@
 		private function handleTwitterClose(event:Event):void
 		{
 			twitter.visible = false;			
-		}
+		}*/
 		
 		//--------------------------------------------------
 		
 		private function initApp():void
 		{
+			//whatsOnUrMind.visible = false;
 			removeEvents();
 			removeEventsForMainPlayer();
 			//Security.allow/ The player SWF file on www.youtube.com needs to communicate with your host
@@ -296,6 +348,7 @@
 				
 				
 				loader.content.addEventListener("onStateChange", stateChangeHandler);
+				
 				
 				intro_mc.player_mc.seekBar.addEventListener(SliderEvent.THUMB_PRESS,handleSliderChangeEvents);
 				intro_mc.player_mc.seekBar.addEventListener(SliderEvent.THUMB_RELEASE,handleSliderChangeEvents);
@@ -350,7 +403,8 @@
 				intro_mc.player_mc.seekBar.maximum = player.getDuration();
 				if(event["data"] == 1)
 				{
-					
+					timer.addEventListener(TimerEvent.TIMER,handleTimer);
+					timer.start();
 				}
 				else
 				{ 
@@ -477,14 +531,11 @@
 				loaderThree.content.addEventListener("onReady", onPlayerReady);
 				loaderThree.content.addEventListener("onError", onPlayerError);
 				loaderThree.content.addEventListener("onStateChange", onPlayerStateChange);
-				loaderThree.content.addEventListener("onPlaybackQualityChange", 
-					onVideoPlaybackQualityChange);
+				loaderThree.content.addEventListener("onPlaybackQualityChange",onVideoPlaybackQualityChange);
 			}
 			
 			function onPlayerReady(event:Event):void 
 			{
-				
-				
 				// Event.data contains the event parameter, which is the Player API ID 
 				trace("player ready:", Object(event).data);
 				// Once this event has been dispatched by the player, we can use
@@ -494,10 +545,11 @@
 				player3.loadVideoById(url);
 				// Set appropriate player dimensions for your application
 				
-				player3.x = 20;
-				player3.y = 25;
-				player3.setSize(200, 160);
+				player3.x = 10;
+				player3.y =10;
+				player3.setSize(220,180);
 				playerNumber = 3;
+				
 				registerEvents();
 				registerEvetsForPreviousWinnersThumbs();
 				registerEventsForPlayPauseBtn();
@@ -547,13 +599,28 @@
 		
 		function registerEvents_social():void
 		{
-			share_btn.addEventListener(MouseEvent.CLICK,handleShareBtnClick);
+			//share_btn.addEventListener(MouseEvent.CLICK,handleShareBtnClick);
 		}
 		
 		private function handleShareBtnClick(event:MouseEvent):void
 		{
 			trace("share btn clicked");
-			if(!share)
+			
+			addChild(facebookWall);
+			facebookWall.x = 0;
+			facebookWall.y = 0;
+			facebookWall.whatOnMind_txtInput.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDownWhatMind);
+			//var shareProPic:shareProfilePic = new shareProfilePic();
+			
+			facebookWall.whatOnMind_txtInput.text ="What's On your mind ?";
+			facebookWall.successMsg.text = "";
+			facebookWall.shareProfilePic.profilePic.addChild(image);
+			
+			
+			
+			facebookWall.wallPostBtn.addEventListener(MouseEvent.CLICK,handleAddToFacebookBtnClick);
+			facebookWall.cancelFacebookWallBtn.addEventListener(MouseEvent.CLICK,handleCancelFacebookWallBtnClicked);
+			/*if(!share)
 			{
 				embedCode = StringUtil.replace(embedCode, "|userId|", memberId);
 				share = new Share();
@@ -564,13 +631,23 @@
 				
 				this.addChild(share);
 			}
-			share.visible = true;
+			share.visible = true;*/
 		}
 		
-		private function handleShareClose(event:Event):void
+		private function handleMouseDownWhatMind(event:MouseEvent):void
+		{
+			facebookWall.whatOnMind_txtInput.text ="";
+		}
+		private function handleCancelFacebookWallBtnClicked(event:MouseEvent):void
+		{
+			profileMc.profilePicLoader.addChild(image);
+			removeChild(facebookWall);
+		}
+		
+		/*private function handleShareClose(event:Event):void
 		{
 			share.visible = false;
-		}
+		}*/
 		
 	
 		
@@ -584,8 +661,6 @@
 			previousWinners_btn.addEventListener(MouseEvent.CLICK,handlePreviousWinners_btnClicked); 
 			makeYourOwnVideo_btn.addEventListener(MouseEvent.CLICK,handleMakeYourOwnVideo_btnClicked);
 			final5_btn.addEventListener(MouseEvent.CLICK,handleFinal5_btnClicked);
-			
-			
 		}
 		
 		
@@ -600,11 +675,14 @@
 		
 		private function handleIntro_btnClicked(event:MouseEvent):void
 		{
+			
 			removeEvents();
 			setPlayerNumber();
 			intro_btn.enabled = true;
 			trace("Intro Button Clicked"); 
 			gotoAndStop("intro_frame");
+			//whatsOnUrMind.visible = false;
+			url = "Yc2gW5K1s5Y";
 			intro_mc.introMore_btn.addEventListener(MouseEvent.CLICK,handleintroMore_btnClicked);
 			initApp();
 			
@@ -613,25 +691,76 @@
 		private function handlePreviousWinners_btnClicked(event:MouseEvent):void
 		{
 			
-			removeEvents();
+			//removeEvents();
 			setPlayerNumber();
 			//intro_btn.enabled = true;
 			trace("previous Wnner Button Clicked");
-			gotoAndStop("previousWinner_frame");
+			
+			gotoAndStop("previousWinner_frame"); 
+			//whatsOnUrMind.visible = false;
+			moreInfo_mc.visible = false;
+			previousWinners_thumbgrid.visible = false;
+			episodeTitle.text = "";
+			episodeDesccription.text = "Nat Geo's mission programs have always taken viewers inside places where cameras have rarely been. More importantly, for the people who took part in these missions - we changed their lives forever.They came in as ordinary citizens and they left with an experience that marked them for life! Meet our Nat Geo Mission Heroes.";
+			moreInfo_btn.addEventListener(MouseEvent.CLICK,handleMoreInfoClicked);
+			play_btn.visible = false;
+			pause_btn.visible = true;
+			url = "suoy_v6LTRI";
+			getPlayerForPreviousWinners();
+		} 
+		private function handleMoreInfoClicked(event:MouseEvent):void
+		{
 			play_btn.visible = false;
 			pause_btn.visible = false;
-			url = "xwu2vbYV2hI";
-			getPlayerForPreviousWinners();
+			moreInfo_btn.visible = false;
+			previousWinners_thumbgrid.visible = false;
+			moreInfo_btn.removeEventListener(MouseEvent.CLICK,handleMoreInfoClicked);
+			moreInfo_mc.visible = true;
+			if(playerNumber == 3)
+			{
+				player3.pauseVideo();
+			}
+			else if(playerNumber == 0)
+			{
+				
+			}
+			
+			var tween:Tween = new Tween(moreInfo_mc,"alpha",None.easeIn,0,1,.3,true);
+			moreInfo_mc.info.text = episodeDesccription.text;
+			moreInfo_mc.close_btn.addEventListener(MouseEvent.CLICK,handleCloseBtnClicked);
+		}
+		
+		private function handleCloseBtnClicked(event:MouseEvent):void
+		{
+			play_btn.visible = false;
+			pause_btn.visible = false;
+			moreInfo_btn.visible = true;
+			
+			moreInfo_mc.close_btn.removeEventListener(MouseEvent.CLICK,handleCloseBtnClicked);
+			var tweenOut:Tween = new Tween(moreInfo_mc,"alpha",None.easeOut,1,0,.3,true);
+			if(playerNumber == 3)
+			{
+				player3.playVideo();
+				pause_btn.visible = true;
+			}
+			else if(playerNumber == 0)
+			{
+				previousWinners_thumbgrid.visible = true;
+			}
+			moreInfo_btn.addEventListener(MouseEvent.CLICK,handleMoreInfoClicked);
+			pause_btn.addEventListener(MouseEvent.CLICK,handlePreviousWiinnerspause_btnClicked);
 		}
 		
 		private function handleMakeYourOwnVideo_btnClicked(event:MouseEvent):void
 		{
-			removeEvents();
-			intro_btn.enabled = true;
+			
+			//removeEvents();
 			setPlayerNumber();
 			trace("own video Button Clicked");
 			gotoAndStop("makeYourOwnVideo_frame");
-			registerEvents();
+			//whatsOnUrMind.visible = false;
+			intro_btn.enabled = true;
+			//registerEvents();
 			playerNumber = 4;
 		}
 		
@@ -639,8 +768,11 @@
 		{
 			removeEvents();
 			setPlayerNumber();
+			playerNumber = 0;
 			intro_btn.enabled = true;
 			trace("Final5 Button Clicked");
+			gotoAndStop("final5_frame");
+			//whatsOnUrMind.visible = false;
 			registerEvents();
 			
 			/*setPlayerNumber();
@@ -666,18 +798,44 @@
 		
 		private function handleintroMore_btnClicked(event:MouseEvent):void
 		{ 
-			removeEvents();
+			
+			//removeEvents();
 			setPlayerNumber();
 			intro_btn.removeEventListener(MouseEvent.CLICK,handleIntro_btnClicked);
 			intro_mc.gotoAndStop("moreContent");
+			//intro_mc.whatsOnUrMind.visible = false;
+			playerNumber = 0;
+			registerEvetsForThumbs();
 			intro_mc.play_btn.visible = false;
-			intro_mc.pause_btn.visible = true;
+			intro_mc.pause_btn.visible = false;
+			intro_mc.moreInfo_mc.visible = false;
 			intro_mc.episodeTitle.text = "Episode 1: Inside the Indian Army";
 			intro_mc.episodeDesccription.text = "Get an inside look at the second largest army in the world. Be a part of its history, customs, and its glorious traditions. Thousands of ordinary Indians from across the country endeavour to clear the specially designed SSB module that will give them a chance to enter this Mission. For the chosen few, a stringent medical examination is the next hurdle they need to cross. Fail that and they’re out of the Mission.";
-			url = "xwu2vbYV2hI";
-			//intro_mc.introBack_btn.addEventListener(MouseEvent.CLICK,handleintroBack_btnClicked); 
-			getPlayer();
+			//url = "suoy_v6LTRI";
+			intro_mc.introBack_btn.addEventListener(MouseEvent.CLICK,handleintroBack_btnClicked);
+			intro_mc.moreInfo_btn.addEventListener(MouseEvent.CLICK,handleMoreInfoIntroClicked);
+			//getPlayer(); 
 		} 
+
+		private function handleMoreInfoIntroClicked(event:MouseEvent):void
+		{
+			intro_mc.moreInfo_btn.removeEventListener(MouseEvent.CLICK,handleMoreInfoIntroClicked);
+			intro_mc.moreInfo_btn.visible = false;
+			intro_mc.moreInfo_mc.visible = true;
+			var tweenStart:Tween = new Tween(intro_mc.moreInfo_mc,"alpha",None.easeIn,0,1,.3,true);
+			intro_mc.moreInfo_mc.info.text = intro_mc.episodeDesccription.text;
+			intro_mc.moreInfo_mc.close_btn.addEventListener(MouseEvent.CLICK,handleCloseBtnIntroClicked);
+		}
+		
+		private function handleCloseBtnIntroClicked(event:MouseEvent):void
+		{
+			
+			intro_mc.moreInfo_mc.close_btn.removeEventListener(MouseEvent.CLICK,handleCloseBtnIntroClicked);
+			var tweenStop:Tween = new Tween(intro_mc.moreInfo_mc,"alpha",None.easeOut,1,0,.3,true);
+			intro_mc.moreInfo_btn.visible = true;
+			intro_mc.moreInfo_btn.addEventListener(MouseEvent.CLICK,handleMoreInfoIntroClicked);
+		}
+		
 		private function handlePlayBtnClicked(event:MouseEvent):void
 		{
 			trace("handlePlayBtnClicked");
@@ -756,7 +914,7 @@
 			intro_mc.play_btn.addEventListener(MouseEvent.CLICK,handleIntro_mcPlayBtnClicked);
 		}
 		
-		//-------------------------------registerEvetsForThumbs ------------------------
+		//-------------------------------register Evets For Thumbs ------------------------
 		
 		
 		
@@ -776,16 +934,17 @@
 		
 		private function onThumbClick(event:TGThumbEvent):void
 		{ 
-			registerEventsForPlayPauseBtn();
-			intro_mc.play_btn.visible = false;
-			intro_mc.pause_btn.visible = true;
-			trace("thumb Clicked"); 
-			intro_mc.episodeTitle.text = event.data.title;
-			trace("event.data.description",event.data.caption); 
 			setPlayerNumber();
-			url = event.data.link;
-			getPlayer();
+			//registerEventsForPlayPauseBtn();
+			
+			intro_mc.play_btn.visible = false;
+			intro_mc.pause_btn.visible = false;
+			trace("thumb hnbdjbejdb Clicked"); 
+			intro_mc.episodeTitle.text = event.data.title;
 			intro_mc.episodeDesccription.text = event.data.caption;
+			trace("event.data.description",event.data.caption); 
+			//url = event.data.link;
+			//getPlayer();
 		}
 		
 		private function handlePrevious_btnClicked(event:Event):void 
@@ -803,21 +962,29 @@
 		
 		private function registerEvetsForPreviousWinnersThumbs():void
 		{
-			previousWinners_thumbgrid.addEventListener(TGThumbEvent.CLICK_THUMB,onpreviousWinners_thumbgrid);
+			thumbgrid_previousWinners.addEventListener(TGThumbEvent.CLICK_THUMB,onpreviousWinners_thumbgrid);
 			trace("registerEvetsForPreviousWinnersThumbs");
 		}
 		private function removeEvetsForPreviousWinnersThumbs():void
 		{
-			previousWinners_thumbgrid.removeEventListener(TGThumbEvent.CLICK_THUMB,onpreviousWinners_thumbgrid);
+			thumbgrid_previousWinners.removeEventListener(TGThumbEvent.CLICK_THUMB,onpreviousWinners_thumbgrid);
 			trace("registerEvetsForPreviousWinnersThumbs");
 		}
 		
 		private function onpreviousWinners_thumbgrid(event:TGThumbEvent):void
 		{
 			setPlayerNumber();
-			url = event.data.link;
+			playerNumber = 0;
+			play_btn.visible = false;
+			pause_btn.visible = false;
+			previousWinners_thumbgrid.visible = true;
+			//url = event.data.link;
 			trace("event.data.link;",event.data.link);
-			getPlayerForPreviousWinners();
+			trace("k,hdknolvbik biibidc",event.data.title);
+			trace("k,hdknolvbik biibidc",event.data.caption);
+			episodeTitle.text = event.data.title;
+			episodeDesccription.text = event.data.caption;
+			//getPlayerForPreviousWinners();
 		}
 		
 		
@@ -826,7 +993,7 @@
 		
 		private function setPlayerNumber():void 
 		{	
-			intro_btn.addEventListener(MouseEvent.CLICK,handleIntro_btnClicked);
+			//intro_btn.addEventListener(MouseEvent.CLICK,handleIntro_btnClicked);
 			//timer.stop();
 			trace("playerNumber",playerNumber);
 			if (playerNumber == 1)
@@ -845,16 +1012,22 @@
 				player3.destroy();
 				previousWinners_mc.removeChild(loaderThree);
 			}
+			else if(playerNumber == 0)
+			{
+				
+			}
 		}
 		
 		private function handleintroBack_btnClicked(event:MouseEvent):void	
 		{
+			playerNumber = 0;
 			setPlayerNumber();
 			intro_mc.gotoAndStop("mainContent");
 			intro_mc.introMore_btn.addEventListener(MouseEvent.CLICK,handleintroMore_btnClicked);
+			url = "Yc2gW5K1s5Y";
 			initApp();
 			//registerEvents();
-			player2.visible = false;
+			//player2.visible = false;
 		}
 	}
 }
