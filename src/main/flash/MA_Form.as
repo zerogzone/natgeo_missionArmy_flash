@@ -31,10 +31,10 @@
 		public var genderArray:Array;
 		public var message:String; 
 		private var socnetAPI:SocnetAPI;
-		private var applicationID:String = "155442984483491";
-		private var secretKey:String = "94e365d702169396f836222cfa166fed";
+		private var applicationID:String = "153610078014709";
+		private var secretKey:String = "4772b59f4bc07a941cf6b578c475a254";
 		private var scope:String = "publish_stream,user_photos";
-		private var redirectURI:String = "http://dev.collectivezen.com/fbtestbed/fb/manu/containerTest/callback.html";
+		private var redirectURI:String = "http://apptikka.com/natgeoindia/fb/missionarmy/pages/natgeo_site/option1/callback.html";
 		private var fbPageId:String;
 		private var rs:RemotingService;
 		
@@ -55,25 +55,25 @@
 			fbPageId = loaderInfo.parameters.fbPageId;
 			
 			if (ExternalInterface.available) {
-                try {
-                   
-                    
-                    if (checkJavaScriptReady()) {
-                        //output.appendText("JavaScript is ready.\n");
-                    } else {
-                        //output.appendText("JavaScript is not ready, creating timer.\n");
-                        var readyTimer:Timer = new Timer(100, 0);
-                        readyTimer.addEventListener(TimerEvent.TIMER, timerHandler);
-                        readyTimer.start();
-                    }
-                } catch (error:SecurityError) {
-                    //output.appendText("A SecurityError occurred: " + error.message + "\n");
-                } catch (error:Error) {
-                    //output.appendText("An Error occurred: " + error.message + "\n");
-                }
-            } else {
-                //output.appendText("External interface is not available for this container.");
-            }
+				try {
+					
+					
+					if (checkJavaScriptReady()) {
+						//output.appendText("JavaScript is ready.\n");
+					} else {
+						//output.appendText("JavaScript is not ready, creating timer.\n");
+						var readyTimer:Timer = new Timer(100, 0);
+						readyTimer.addEventListener(TimerEvent.TIMER, timerHandler);
+						readyTimer.start();
+					}
+				} catch (error:SecurityError) {
+					//output.appendText("A SecurityError occurred: " + error.message + "\n");
+				} catch (error:Error) {
+					//output.appendText("An Error occurred: " + error.message + "\n");
+				}
+			} else {
+				//output.appendText("External interface is not available for this container.");
+			}
 			
 			isInitializing = true;
 			
@@ -90,6 +90,8 @@
 			initRemoting();
 			initExternal();
 			initSocnet();
+			//enableEntryForm();
+			mobileNo_txt.text = "91-";
 		}
 		
 		private function handleDisablerClick(event:MouseEvent):void
@@ -364,9 +366,12 @@
 		
 		private function onClickSubmit(e:MouseEvent):void
 		{
+			gotoAndStop("1");
 			trace("clicked..");
 			
 			var email:String = email_txt.text; 
+			var userHeight:String = height_txt.text;
+			var mobileNo:String = mobileNo_txt.text;
 			
 			if(firstName_txt.text == ""||lastName_txt.text == ""||weight_txt.text == ""||height_txt.text == ""||mobileNo_txt.text == ""||email_txt.text == "")
 			{
@@ -393,6 +398,15 @@
 				messageBox.y = 50;
 				messageBox.visible = true;
 			}
+			else if(userHeight.indexOf(".")== -1 && height_txt.text.length !=3)
+			{
+				trace("invalid height");
+				messageBox.errorMessage.text = "Enter valid height";
+				messageBox.x = 320;
+				messageBox.y = 50;
+				messageBox.visible = true;
+				
+			}
 			else if(weight_txt.text.length <2)
 			{
 				trace("invalid weight");
@@ -401,7 +415,7 @@
 				messageBox.y = 50;
 				messageBox.visible = true;
 			}
-			else if (mobileNo_txt.text.length > 0 && mobileNo_txt.text.length <10)
+			else if ( mobileNo.indexOf("-")!= -1 && mobileNo_txt.text.length > 0 && mobileNo_txt.text.length <13 ||mobileNo.indexOf("-")==-1 && mobileNo_txt.text.length > 0 && mobileNo_txt.text.length <10)
 			{
 				trace("invalid mobile No.");
 				messageBox.errorMessage.text = "Enter valid Mobile No.";
@@ -432,6 +446,14 @@
 				trace("invalid email");
 				trace("."+email.indexOf("."));
 				messageBox.errorMessage.text = "Enter valid email";
+				messageBox.visible = true;
+			}
+			else if(userHeight.indexOf(".")!=-1 && userHeight.indexOf(".")<=2)
+			{
+				trace("invalid height index ."+userHeight.indexOf("."));
+				messageBox.errorMessage.text = "Enter valid height";
+				messageBox.x = 320;
+				messageBox.y = 50;
 				messageBox.visible = true;
 			}
 			else
@@ -469,6 +491,7 @@
 		
 		private function handleRegisterParticipantResult(result:Object):void
 		{
+			gotoAndStop("2");
 			messageBox.errorMessage.text = "Thank you for participating in Idea Presents Nat Geo Mission Army. We will get back to you regarding the next stage shortly.";
 			messageBox.x = 320;
 			messageBox.y = 50;
@@ -477,6 +500,7 @@
 		
 		private function handleRegisterParticipantFault(fault:Object):void
 		{
+			gotoAndStop("2");
 			messageBox.errorMessage.text = "We are  sorry, we couldnt complete the request. Please try again.";
 			messageBox.x = 320;
 			messageBox.y = 50;
