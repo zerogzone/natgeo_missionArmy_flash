@@ -138,28 +138,35 @@ package sk.yoz.net
 		
 		public function connect():void
 		{
-			if(!verifySavedToken())
+			try
 			{
-				if(!tokenCallbackDefined)
+				if(!verifySavedToken())
 				{
-					tokenCallbackDefined = true;
-					ExternalInterface.addCallback(jsConfirm, confirmConnection);
+					if(!tokenCallbackDefined)
+					{
+						tokenCallbackDefined = true;
+						ExternalInterface.addCallback(jsConfirm, confirmConnection);
+					}
+					
+					var id:String = ExternalInterface.objectID;
+					var url:String = authorizationURL;
+					var name:String = jsWindowName;
+					var props:String = "width=670,height=370";
+					var js:String = ''
+						+ 'if(!window.' + jsConfirm + '){'
+						+ '    window.' + jsConfirm + ' = function(hash){'
+						+ '        var flash = document.getElementById("' + id + '");'
+						+ '        flash.' + jsConfirm + '(hash);'
+						+ '    }'
+						+ '};'
+						+ 'window.open("' + url + '", "' + name + '", "' + props + '");'
+					
+					ExternalInterface.call("function(){" + js + "}");
 				}
-				
-				var id:String = ExternalInterface.objectID;
-				var url:String = authorizationURL;
-				var name:String = jsWindowName;
-				var props:String = "width=670,height=370";
-				var js:String = ''
-					+ 'if(!window.' + jsConfirm + '){'
-					+ '    window.' + jsConfirm + ' = function(hash){'
-					+ '        var flash = document.getElementById("' + id + '");'
-					+ '        flash.' + jsConfirm + '(hash);'
-					+ '    }'
-					+ '};'
-					+ 'window.open("' + url + '", "' + name + '", "' + props + '");'
-				
-				ExternalInterface.call("function(){" + js + "}");
+			}
+			catch(error:Error)
+			{
+				trace("kichcha --> error External Interface",error);
 			}
 		}
 		

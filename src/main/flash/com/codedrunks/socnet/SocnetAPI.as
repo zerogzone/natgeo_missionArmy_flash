@@ -10,6 +10,8 @@ package com.codedrunks.socnet
 	import flash.events.EventDispatcher;
 	import flash.events.IEventDispatcher;
 	
+	import ikriti.natgeo.vo.AttachmentVO;
+	
 	public class SocnetAPI extends EventDispatcher
 	{
 		private var facebookAPI:FacebookGraphAPI;
@@ -163,11 +165,19 @@ package com.codedrunks.socnet
 		 @ usage <code>className.publishToFeed(message:String, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null)</code>
 		 @ return void
 		 */
-		public function publishToFeed(message:String, userId:String=null, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null):void
+		/*public function publishToFeed(message:String, userId:String=null, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null):void
 		{
 			facebookAPI.publishToWall(message, userId, picture, link, name, caption, description, source);
 			checkWallPosted();
+		}*/
+		
+		public function publishToFeed(message:String, attachmentVO:Object, actionLinks:Array):void
+		{
+			facebookAPI.publishToProfile(message,attachmentVO,actionLinks);
+			checkWallPosted();
 		}
+		
+		
 		
 		/**
 		@ checks if the user likes a particular application	

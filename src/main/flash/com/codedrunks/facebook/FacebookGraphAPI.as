@@ -13,6 +13,8 @@ package com.codedrunks.facebook
 	import flash.net.URLVariables;
 	import flash.system.Security;
 	
+	import ikriti.natgeo.vo.AttachmentVO;
+	
 	import sk.yoz.events.FacebookOAuthGraphEvent;
 	import sk.yoz.net.FacebookOAuthGraph;
 
@@ -276,6 +278,24 @@ package com.codedrunks.facebook
 		@ usage <code>className.publishToWall(message:String, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null)</code>
 		@ return void
 		*/
+		
+		public function publishToProfile(message:String, attachment:Object, actionLinks:Array):void
+		{
+			currentRequest = PUBLISH_TO_WALL;
+			
+			var data:URLVariables = new URLVariables();
+			data.message = message;
+			data.attachment = JSON.encode(attachment);
+			data.action_links = JSON.encode(actionLinks);
+			data.access_token = accessToken;
+			
+			var url:String = "https://api.facebook.com/method/stream.publish";
+			var request:URLRequest = new URLRequest(url);
+			request.data = data;	
+			request.method = URLRequestMethod.POST;
+			loader.load(request);
+		}
+		
 		public function publishToWall(message:String, userId:String=null, picture:String=null, link:String=null, name:String=null, caption:String=null, description:String=null, source:String=null):void
 		{
 			currentRequest = PUBLISH_TO_WALL;

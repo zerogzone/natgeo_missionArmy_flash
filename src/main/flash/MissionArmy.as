@@ -27,6 +27,7 @@
 	import flash.net.URLLoader;
 	import flash.net.URLLoaderDataFormat;
 	import flash.net.URLRequest;
+	import flash.net.navigateToURL;
 	import flash.sampler.pauseSampling;
 	import flash.sensors.Accelerometer;
 	import flash.system.*;
@@ -34,6 +35,9 @@
 	import flash.utils.ByteArray;
 	import flash.utils.Timer;
 	import flash.utils.describeType;
+	
+	import ikriti.natgeo.vo.AttachmentVO;
+	import ikriti.natgeo.vo.WallMediaVO;
 	
 	import net.slideshowpro.slideshowpro.SSPModePlaybackEvent;
 	import net.slideshowpro.slideshowpro.SSPVideoEvent;
@@ -51,7 +55,7 @@
 		private var applicationID:String = "153610078014709";
 		private var secretKey:String = "4772b59f4bc07a941cf6b578c475a254";
 		private var scope:String = "publish_stream,user_photos";
-		private var redirectURI:String = "http://www.apptikka.com/ngc/mission_army/apps/callback.html";
+		private var redirectURI:String = "http://apptikka.com/natgeoindia/fb/missionarmy/canvas/callback.html";
 		private var socnetAPI:SocnetAPI;
 		private var profilePicLoader:Loader;
 		private var player:Object;
@@ -72,6 +76,9 @@
 		[Bindable]
 		private var shareImage:Image = new Image();
 		private var image:Image = new Image();
+		[Bindable]
+		private var fbUserName:String = "";
+		private var showShare:Boolean = false;
 		
 		private var shareTimer:Timer = new Timer(2000);
 		
@@ -154,7 +161,9 @@
 		 @ params event:Event.
 		 @ usage <code></code>
 		 @ return void
-		 */			
+		 */		
+		
+		
 		private function handleConfigLoadComplete(event:Event):void
 		{
 			
@@ -216,9 +225,11 @@
 		
 		private function handleProfileInfoFetch(event:SocnetUserInfoEvent):void
 		{
+			showShare = true;
 			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FETCHED, handleProfileInfoFetch);
 			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleProfileInfoFail);
 			
+			fbUserName = event.userName;
 			profileMc.profileName.text = event.userName;
 			
 			image.source = event.userPic;
@@ -233,6 +244,7 @@
 		{
 			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FETCHED, handleProfileInfoFetch);
 			socnetAPI.removeEventListener(SocnetUserInfoEvent.USER_INFO_FAILED, handleProfileInfoFail);
+			showShare = false;
 		}
 		
 		private function handleAddToFacebookBtnClick(event:MouseEvent):void
@@ -246,7 +258,27 @@
 			{
 				onMindTxt = facebookWall.whatOnMind_txtInput.text;
 			}
-			socnetAPI.publishToFeed(onMindTxt, null, "http://www.apptikka.com/ngc/mission_army/apps/assets/images/fb_wall_cover.png", "http://apps.facebook.com/natgeoindia/", "Idea Presents Nat Geo Mission Army", "http://apps.facebook.com/natgeoindia/" , "This is Nat Geo's biggest television event of the year. Enter Mission Army and live the life of a soldier. Five ordinary Indians will get the chance of a lifetime! And only one person will be a part of the Indian military training team abroad.", "http://www.apptikka.com/ngc/mission_army/apps/Container.swf");
+			
+			var media:Object = {};
+			media.type = "flash";
+			media.swfsrc = "http://apptikka.com/natgeoindia/fb/missionarmy/canvas/Container.swf";
+			media.imgsrc = "http://apptikka.com/natgeoindia/fb/missionarmy/canvas/assets/images/fb_wall_cover.png";
+			media.width = "132";
+			media.height = "100";
+			media.expanded_width = "460";
+			media.expanded_height = "460";
+			
+			var attachmentVO:Object = {};
+			attachmentVO.name = "Idea Presents Nat Geo Mission Army";
+			attachmentVO.href = "http://apps.facebook.com/natgeoindia/";
+			attachmentVO.caption = "Mission Army";
+			attachmentVO.description = "This is Nat Geo's biggest television event of the year. Enter Mission Army and live the life of a soldier. Five ordinary Indians will get the chance of a lifetime! And only one person will be a part of the Indian military training team abroad.";
+			attachmentVO.media = [media];
+			
+			var actionLinks:Array = [{"text":"Mission Army","href":"http://apps.facebook.com/natgeoindia/"}];
+			
+			trace("kichcha --> attachment vo check",attachmentVO.name,attachmentVO.media,attachmentVO.href);
+			socnetAPI.publishToFeed(onMindTxt,attachmentVO,actionLinks);
 			socnetAPI.addEventListener(SocnetAPIEvent.WALL_POST_SUCCESS,handleWallPostSuccess);
 			socnetAPI.addEventListener(SocnetAPIEvent.WALL_POST_FAIL,handleWallPostFail);
 		}
@@ -604,34 +636,40 @@
 		
 		private function handleShareBtnClick(event:MouseEvent):void
 		{
-			trace("share btn clicked");
-			
-			addChild(facebookWall);
-			facebookWall.x = 0;
-			facebookWall.y = 0;
-			facebookWall.whatOnMind_txtInput.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDownWhatMind);
-			//var shareProPic:shareProfilePic = new shareProfilePic();
-			
-			facebookWall.whatOnMind_txtInput.text ="What's On your mind ?";
-			facebookWall.successMsg.text = "";
-			facebookWall.shareProfilePic.profilePic.addChild(image);
-			
-			
-			
-			facebookWall.wallPostBtn.addEventListener(MouseEvent.CLICK,handleAddToFacebookBtnClick);
-			facebookWall.cancelFacebookWallBtn.addEventListener(MouseEvent.CLICK,handleCancelFacebookWallBtnClicked);
-			/*if(!share)
+			if(showShare)
 			{
-				embedCode = StringUtil.replace(embedCode, "|userId|", memberId);
-				share = new Share();
-				share.addEventListener(Share.CLOSE_EVENT, handleShareClose);
-				share.configure(embedCode, wildfireUIConfig, 400, 400);
-				share.x = 0;
-				share.y = 0;
+				trace("share btn clicked",fbUserName);
+				addChild(facebookWall);
+				facebookWall.x = 0;
+				facebookWall.y = 0;
+				facebookWall.whatOnMind_txtInput.addEventListener(MouseEvent.MOUSE_DOWN,handleMouseDownWhatMind);
+				//var shareProPic:shareProfilePic = new shareProfilePic();
 				
-				this.addChild(share);
+				facebookWall.whatOnMind_txtInput.text ="What's On your mind ?";
+				facebookWall.successMsg.text = "";
+				facebookWall.shareProfilePic.profilePic.addChild(image);
+				
+				
+				
+				facebookWall.wallPostBtn.addEventListener(MouseEvent.CLICK,handleAddToFacebookBtnClick);
+				facebookWall.cancelFacebookWallBtn.addEventListener(MouseEvent.CLICK,handleCancelFacebookWallBtnClicked);
+				/*if(!share)
+				{
+					embedCode = StringUtil.replace(embedCode, "|userId|", memberId);
+					share = new Share();
+					share.addEventListener(Share.CLOSE_EVENT, handleShareClose);
+					share.configure(embedCode, wildfireUIConfig, 400, 400);
+					share.x = 0;
+					share.y = 0;
+					
+					this.addChild(share);
+				}
+				share.visible = true;*/
 			}
-			share.visible = true;*/
+			else
+			{
+				navigateToURL(new URLRequest("http://apps.facebook.com/natgeoindia/"));
+			}
 		}
 		
 		private function handleMouseDownWhatMind(event:MouseEvent):void
