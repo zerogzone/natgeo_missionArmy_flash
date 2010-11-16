@@ -362,6 +362,13 @@
 			{
 				initSocnet();
 			}
+			
+			if (ExternalInterface.available) 
+			{ 
+				trace("if loopol89p;p9");
+				var x:* =  ExternalInterface.call("sendToJavaScript");
+				trace(x);
+			}
 		}
 		
 		private function onClickSubmit(e:MouseEvent):void
@@ -492,7 +499,7 @@
 		private function handleRegisterParticipantResult(result:Object):void
 		{
 			gotoAndStop("2");
-			messageBox.errorMessage.text = "Thank you for participating in Idea Presents Nat Geo Mission Army. We will get back to you regarding the next stage shortly.";
+			messageBox.errorMessage.text = "Thank you for participating in Idea Presents Nat Geo Mission Army. If you qualify for the Audition Round, an email will be sent to you. Click OK to continue.";
 			messageBox.x = 320;
 			messageBox.y = 50;
 			messageBox.visible = true;
