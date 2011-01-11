@@ -363,11 +363,14 @@
 				initSocnet();
 			}
 			
-			if (ExternalInterface.available) 
-			{ 
-				trace("if loopol89p;p9");
-				var x:* =  ExternalInterface.call("sendToJavaScript");
-				trace(x);
+			if(messageBox.errorMessage.text == "Thank you for participating in Idea Presents Nat Geo Mission Army. If you qualify for the Audition Round, an email will be sent to you. Click OK to continue.")
+			{
+				if (ExternalInterface.available) 
+				{ 
+					trace("if loopol89p;p9");
+					var x:* =  ExternalInterface.call("sendToJavaScript");
+					trace(x);
+				}
 			}
 		}
 		

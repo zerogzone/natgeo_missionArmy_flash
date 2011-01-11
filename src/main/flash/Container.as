@@ -15,6 +15,7 @@ package
 	import flash.net.URLRequest;
 	import flash.system.ApplicationDomain;
 	import flash.system.LoaderContext;
+	import flash.system.Security;
 	import flash.utils.Timer;
 	
 	public class Container extends Sprite
@@ -25,8 +26,17 @@ package
 		private var userId:String;
 		private var params:Object;
 		
+		Security.allowDomain("*");
+		Security.allowInsecureDomain("*");
+		
 		public function Container()
 		{
+			Security.allowDomain("*");
+			Security.allowInsecureDomain("*");
+			
+			Security.loadPolicyFile("http://www.apptikka.com/crossdomain.xml");
+			Security.loadPolicyFile("http://profile.ak.fbcdn.net/crossdomain.xml");
+			
 			var parameters:Object = this.loaderInfo.parameters;
 			params = parameters;
 			trace("debug --> INIT CONTAINER", this.loaderInfo.parameters);

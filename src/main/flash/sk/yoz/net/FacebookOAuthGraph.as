@@ -41,6 +41,7 @@ package sk.yoz.net
 			
 			Security.loadPolicyFile(apiSecuredPath + "/crossdomain.xml");
 			Security.loadPolicyFile(apiUnsecuredPath + "/crossdomain.xml");
+			Security.loadPolicyFile("http://profile.ak.fbcdn.net/crossdomain.xml");
 		}
 		
 		public function get token():String

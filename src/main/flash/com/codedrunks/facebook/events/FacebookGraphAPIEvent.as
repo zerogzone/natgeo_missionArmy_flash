@@ -23,6 +23,8 @@ package com.codedrunks.facebook.events
 		public var userPic:String;
 		public var userId:String;
 		
+		public var friendsData:Array;
+		
 		public function FacebookGraphAPIEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
 			super(type, bubbles, cancelable);
