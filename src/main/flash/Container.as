@@ -201,6 +201,7 @@ package
 			var n:int = flashvarsNode.length();
 			
 			for (var i:int = 0; i < n; i++) {
+				trace("kichcha --> config xml nodes",flashvarsNode[i]);
 				child = flashvarsNode[i];
 				nodeName = child.name().toString();
 				nodeValue = child.text();
