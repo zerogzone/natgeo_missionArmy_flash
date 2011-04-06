@@ -22,6 +22,7 @@ package com.codedrunks.facebook.events
 		public var userName:String;
 		public var userPic:String;
 		public var userId:String;
+		public var access_token:String;
 		
 		public var friendsData:Array;
 		

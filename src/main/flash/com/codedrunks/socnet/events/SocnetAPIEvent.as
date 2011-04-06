@@ -10,6 +10,8 @@ package com.codedrunks.socnet.events
 		public static const WALL_POST_SUCCESS:String = "wallPostSuccess";
 		public static const WALL_POST_FAIL:String = "wallPostFail";
 		
+		public var access_token:String;
+		
 		public function SocnetAPIEvent(type:String, bubbles:Boolean=false, cancelable:Boolean=false)
 		{
 			super(type, bubbles, cancelable);

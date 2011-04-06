@@ -19,6 +19,7 @@ package com.codedrunks.socnet
 		
 		private var flashvars:Object;
 		private var userId:String;
+		private var access_token:String;
 		
 		public function SocnetAPI(target:IEventDispatcher=null):void
 		{
@@ -83,6 +84,7 @@ package com.codedrunks.socnet
 			facebookAPI.removeEventListener(FacebookGraphAPIEvent.FB_API_INITIALIZATION_FAILED, handleFBIntializationFailed);
 			
 			userId = facebookAPI.getUserId();
+			access_token = facebookAPI.getAccessToken();
 			
 			dispatchEvent(new SocnetAPIEvent(SocnetAPIEvent.INITIALIZED));
 		}
@@ -256,6 +258,11 @@ package com.codedrunks.socnet
 		public function getUserId():String
 		{
 			return userId;
+		}
+		
+		public function getAccessToken():String
+		{
+			return access_token;
 		}
 	}
 }

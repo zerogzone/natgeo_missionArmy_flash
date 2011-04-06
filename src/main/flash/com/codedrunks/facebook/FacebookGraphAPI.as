@@ -380,5 +380,10 @@ package com.codedrunks.facebook
 			return userId;
 		}
 		
+		public function getAccessToken():String
+		{
+			return accessToken;
+		}
+		
 	}
 }
